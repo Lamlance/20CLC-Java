@@ -29,7 +29,16 @@ public class SlangDictHashMap {
   public String getSlangByKey(String key){
     return this.slangDict.get(key);
   }
+  public int addSlang(String key,String def,boolean replaceFlag) {
+    boolean containsKey = this.slangDict.containsKey(key);
 
+    if(!(containsKey) || replaceFlag){
+      this.slangDict.put(key, def);
+      return containsKey ? 2 : 1;
+    }
+    return 0;
+    
+  }
   public Map<String,String> getSlangDict() {
     return this.slangDict;
   }
