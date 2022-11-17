@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -13,6 +14,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
@@ -22,7 +24,9 @@ import SlangDict.SlangDictHashMap;
 
 public class SlangDictGui {
 
-  private static final String[] OPTIONS = {"Don't replace if duplicate","Replace if duplicate"};
+  private static final String[] OPTIONS = {"Add if duplicate","Don't replace if duplicate","Replace if duplicate"};
+  private static final String INPUT_OPTIONS_NEW = "Add new slang";
+  private static final String INPUT_OPTION_SEARCH = "Search a slang";
 
   private JFrame frame;
   private JTextArea defTextArea;
@@ -33,8 +37,13 @@ public class SlangDictGui {
   private JTextField newKey_TxtFld;
   private JTextField newDef_TxtFld;
   private JLabel inputStatusLabel;
-  private JButton addSlangBtn;
+  //private JButton addSlangBtn;
   private JComboBox<String> addOptions;
+
+  private JTextField searchKey_TxtFld;
+  private JTextField searchDef_TxtFld;
+  private int searchIndex = 0;
+  private int searchLength = 0;
 
   private String selectedKey = "";
   private SlangDictHashMap slangDict;
@@ -55,8 +64,8 @@ public class SlangDictGui {
 
     //====Input new Slang Panel  
     this.inputStatusLabel = new JLabel("Status: none");
-    this.addSlangBtn = new JButton("Add slang");
-    this.addSlangBtn.addActionListener(new AddSlangBtnHandle());
+    JButton addSlangBtn = new JButton("Add slang");
+    addSlangBtn.addActionListener(new AddSlangBtnHandle());
     this.newKey_TxtFld = new JTextField();
     this.newDef_TxtFld = new JTextField();
     addOptions = new JComboBox<String>(OPTIONS);
@@ -77,7 +86,7 @@ public class SlangDictGui {
 
     JPanel addSlangPanel4 = new JPanel();
     addSlangPanel4.add(this.inputStatusLabel);
-    addSlangPanel4.add(this.addSlangBtn);
+    addSlangPanel4.add(addSlangBtn);
     
     JPanel newInputPanel = new JPanel();
     newInputPanel.setLayout(new java.awt.GridLayout(2,2));
@@ -86,8 +95,45 @@ public class SlangDictGui {
     newInputPanel.add(addSlangPanel3);
     newInputPanel.add(addSlangPanel4);
 
-    this.frame.add(newInputPanel,BorderLayout.PAGE_START);
+    JPanel addCardPanel = new JPanel(new java.awt.CardLayout());
+    addCardPanel.add(newInputPanel,SlangDictGui.INPUT_OPTIONS_NEW);
+
     //===================
+    //Input search slang panel
+    this.searchDef_TxtFld = new JTextField();
+    this.searchKey_TxtFld = new JTextField();
+
+    JPanel newSearchPanel1 = new JPanel();
+    newSearchPanel1.setLayout(new BorderLayout());
+    newSearchPanel1.add(new JLabel("Search key:"),BorderLayout.WEST);
+    newSearchPanel1.add(this.searchKey_TxtFld,BorderLayout.CENTER);
+
+    JPanel newSearchPanel2 = new JPanel();
+    newSearchPanel2.setLayout(new BorderLayout());
+    newSearchPanel2.add(new JLabel("Search definition:"),BorderLayout.WEST);
+    newSearchPanel2.add(this.searchDef_TxtFld,BorderLayout.CENTER);
+    
+    JPanel newSearchPanel3 = new JPanel(new BorderLayout());
+    JButton searchBtn = new JButton("Search");
+    newSearchPanel3.add(searchBtn,BorderLayout.CENTER);
+    newSearchPanel3.add(new JLabel("Search status: none"),BorderLayout.WEST);
+
+    JPanel newSearchPanel = new JPanel(new java.awt.GridLayout(2,2));
+    newSearchPanel.add(newSearchPanel1);
+    newSearchPanel.add(newSearchPanel2);
+    newSearchPanel.add(new JLabel(String.format("%d out of %d", this.searchIndex,this.searchLength)));
+    newSearchPanel.add(newSearchPanel3);
+
+    JPanel searchCardPanel = new JPanel(new java.awt.CardLayout());
+    searchCardPanel.add(newSearchPanel,SlangDictGui.INPUT_OPTION_SEARCH);
+
+    //====================
+    //Tab Pane============
+    JTabbedPane inputTabPanel = new JTabbedPane();
+    inputTabPanel.addTab(SlangDictGui.INPUT_OPTIONS_NEW, addCardPanel);
+    inputTabPanel.addTab(SlangDictGui.INPUT_OPTION_SEARCH, searchCardPanel);
+    this.frame.getContentPane().add(inputTabPanel, BorderLayout.PAGE_START);
+    //====================
 
     String[] slangKeys = this.slangDict.getSlangDict().keySet().toArray(new String[0]);
     listModel = new DefaultListModel<String>();
@@ -146,5 +192,26 @@ public class SlangDictGui {
       }
     }    
   }
+  class SearchSlangBtnHandle implements java.awt.event.ActionListener{
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      // TODO Auto-generated method stub
+      String[] keyModelStrings = (String[]) listModel.toArray();
+      ArrayList<Integer> searchIndexes = this.SearchOnlyKey(keyModelStrings);
+    }
+
+    public ArrayList<Integer> SearchOnlyKey(String keyArr[]) {
+      ArrayList<Integer> ansArrayList = new ArrayList<Integer>();
+      for (int i = 0; i < keyArr.length; i++) {
+        if(keyArr[i].contains(searchKey_TxtFld.getText())){
+          ansArrayList.add(i);
+        }
+      }
+      return ansArrayList;
+    }
+
+  }
+
 
 }
