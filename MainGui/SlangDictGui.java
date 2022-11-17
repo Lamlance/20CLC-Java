@@ -34,11 +34,7 @@ public class SlangDictGui {
   private JList<String> slangKeyList;
   private DefaultListModel<String> listModel;
 
-  private JTextField newKey_TxtFld;
-  private JTextField newDef_TxtFld;
-  private JLabel inputStatusLabel;
-  //private JButton addSlangBtn;
-  private JComboBox<String> addOptions;
+  private AddSlangPanel addSlangPanel;
 
   private JTextField searchKey_TxtFld;
   private JTextField searchDef_TxtFld;
@@ -63,66 +59,18 @@ public class SlangDictGui {
     this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
     //====Input new Slang Panel  
-    this.inputStatusLabel = new JLabel("Status: none");
-    JButton addSlangBtn = new JButton("Add slang");
-    addSlangBtn.addActionListener(new AddSlangBtnHandle());
-    this.newKey_TxtFld = new JTextField();
-    this.newDef_TxtFld = new JTextField();
-    addOptions = new JComboBox<String>(OPTIONS);
-
-    JPanel addSlangPanel1 = new JPanel();
-    addSlangPanel1.setLayout(new java.awt.BorderLayout());
-    addSlangPanel1.add(new JLabel("New key"),BorderLayout.WEST);
-    addSlangPanel1.add(newKey_TxtFld,BorderLayout.CENTER);
-
-    JPanel addSlangPanel2 = new JPanel();
-    addSlangPanel2.setLayout(new java.awt.BorderLayout());
-    addSlangPanel2.add(new JLabel("New definition"),BorderLayout.WEST);
-    addSlangPanel2.add(newDef_TxtFld,BorderLayout.CENTER);
-
-    JPanel addSlangPanel3 = new JPanel();
-    addSlangPanel3.add(new JLabel("Add Option"));
-    addSlangPanel3.add(this.addOptions);
-
-    JPanel addSlangPanel4 = new JPanel();
-    addSlangPanel4.add(this.inputStatusLabel);
-    addSlangPanel4.add(addSlangBtn);
-    
-    JPanel newInputPanel = new JPanel();
-    newInputPanel.setLayout(new java.awt.GridLayout(2,2));
-    newInputPanel.add(addSlangPanel1);
-    newInputPanel.add(addSlangPanel2);
-    newInputPanel.add(addSlangPanel3);
-    newInputPanel.add(addSlangPanel4);
+    this.addSlangPanel = new AddSlangPanel();
+    this.addSlangPanel.addActionListenerToButton(new AddSlangBtnHandle());
 
     JPanel addCardPanel = new JPanel(new java.awt.CardLayout());
-    addCardPanel.add(newInputPanel,SlangDictGui.INPUT_OPTIONS_NEW);
+    addCardPanel.add(this.addSlangPanel.getAddSlangPanel(),SlangDictGui.INPUT_OPTIONS_NEW);
 
     //===================
     //Input search slang panel
     this.searchDef_TxtFld = new JTextField();
     this.searchKey_TxtFld = new JTextField();
 
-    JPanel newSearchPanel1 = new JPanel();
-    newSearchPanel1.setLayout(new BorderLayout());
-    newSearchPanel1.add(new JLabel("Search key:"),BorderLayout.WEST);
-    newSearchPanel1.add(this.searchKey_TxtFld,BorderLayout.CENTER);
-
-    JPanel newSearchPanel2 = new JPanel();
-    newSearchPanel2.setLayout(new BorderLayout());
-    newSearchPanel2.add(new JLabel("Search definition:"),BorderLayout.WEST);
-    newSearchPanel2.add(this.searchDef_TxtFld,BorderLayout.CENTER);
     
-    JPanel newSearchPanel3 = new JPanel(new BorderLayout());
-    JButton searchBtn = new JButton("Search");
-    newSearchPanel3.add(searchBtn,BorderLayout.CENTER);
-    newSearchPanel3.add(new JLabel("Search status: none"),BorderLayout.WEST);
-
-    JPanel newSearchPanel = new JPanel(new java.awt.GridLayout(2,2));
-    newSearchPanel.add(newSearchPanel1);
-    newSearchPanel.add(newSearchPanel2);
-    newSearchPanel.add(new JLabel(String.format("%d out of %d", this.searchIndex,this.searchLength)));
-    newSearchPanel.add(newSearchPanel3);
 
     JPanel searchCardPanel = new JPanel(new java.awt.CardLayout());
     searchCardPanel.add(newSearchPanel,SlangDictGui.INPUT_OPTION_SEARCH);
@@ -171,24 +119,25 @@ public class SlangDictGui {
   class AddSlangBtnHandle implements java.awt.event.ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
-      String newKey = newKey_TxtFld.getText();
-      String newDef = newDef_TxtFld.getText();
+      String newKey = addSlangPanel.getNewKey_TxtFld().getText();
+      String newDef = addSlangPanel.getNewDef_TxtFld().getText();
+
       if(newDef.isBlank() || newDef.isEmpty() || newKey.isEmpty() || newKey.isBlank()){
-        inputStatusLabel.setForeground(Color.RED);
-        inputStatusLabel.setText("Status: invalid input");
+        addSlangPanel.getInputStatusLabel().setForeground(Color.RED);
+        addSlangPanel.getInputStatusLabel().setText("Status: invalid input");
         return;
       }
-      boolean replaceFlag = (addOptions.getSelectedIndex() != 0);
+      boolean replaceFlag = (addSlangPanel.getAddOptions().getSelectedIndex() != 0);
       int addAns = slangDict.addSlang(newKey, newDef, replaceFlag);
       if(addAns != 0){
-        inputStatusLabel.setForeground(Color.GREEN);
-        inputStatusLabel.setText("Status: input success");
+        addSlangPanel.getInputStatusLabel().setForeground(Color.GREEN);
+        addSlangPanel.getInputStatusLabel().setText("Status: input success");
         if(addAns == 1){
           listModel.addElement(newKey);
         }
       }else{
-        inputStatusLabel.setForeground(Color.RED);
-        inputStatusLabel.setText("Status: input failed");
+        addSlangPanel.getInputStatusLabel().setForeground(Color.RED);
+        addSlangPanel.getInputStatusLabel().setText("Status: input failed");
       }
     }    
   }
