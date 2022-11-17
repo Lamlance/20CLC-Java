@@ -24,7 +24,6 @@ import SlangDict.SlangDictHashMap;
 
 public class SlangDictGui {
 
-  private static final String[] OPTIONS = {"Add if duplicate","Don't replace if duplicate","Replace if duplicate"};
   private static final String INPUT_OPTIONS_NEW = "Add new slang";
   private static final String INPUT_OPTION_SEARCH = "Search a slang";
 
@@ -35,11 +34,7 @@ public class SlangDictGui {
   private DefaultListModel<String> listModel;
 
   private AddSlangPanel addSlangPanel;
-
-  private JTextField searchKey_TxtFld;
-  private JTextField searchDef_TxtFld;
-  private int searchIndex = 0;
-  private int searchLength = 0;
+  private SearchSlangPanel searchSlangPanel;
 
   private String selectedKey = "";
   private SlangDictHashMap slangDict;
@@ -67,13 +62,12 @@ public class SlangDictGui {
 
     //===================
     //Input search slang panel
-    this.searchDef_TxtFld = new JTextField();
-    this.searchKey_TxtFld = new JTextField();
+    searchSlangPanel = new SearchSlangPanel();
 
     
 
     JPanel searchCardPanel = new JPanel(new java.awt.CardLayout());
-    searchCardPanel.add(newSearchPanel,SlangDictGui.INPUT_OPTION_SEARCH);
+    searchCardPanel.add(searchSlangPanel.getSearchPanel(),SlangDictGui.INPUT_OPTION_SEARCH);
 
     //====================
     //Tab Pane============
@@ -153,7 +147,7 @@ public class SlangDictGui {
     public ArrayList<Integer> SearchOnlyKey(String keyArr[]) {
       ArrayList<Integer> ansArrayList = new ArrayList<Integer>();
       for (int i = 0; i < keyArr.length; i++) {
-        if(keyArr[i].contains(searchKey_TxtFld.getText())){
+        if(keyArr[i].contains(searchSlangPanel.getSearchKey_TxtFld().getText())){
           ansArrayList.add(i);
         }
       }
