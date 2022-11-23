@@ -9,9 +9,13 @@ public class SearchSlangPanel {
 
   private JTextField searchKey_TxtFld = new JTextField();
   private JTextField searchDef_TxtFld = new JTextField();
+
   private JButton searchSlangBtn = new JButton("Search");
-  private JLabel searchIndexLabel = new JLabel(String.format("%d out of %d", 0,0));
   private JLabel searchStatusLabel = new JLabel("Search status: none");
+
+  private JLabel searchIndexLabel = new JLabel(String.format("%d out of %d", 0,0));
+  private JButton incSearchIndexBtn = new JButton("+");
+  private JButton decSearchIndexBtn = new JButton("-");
 
   private JPanel searchPanel = new JPanel(new java.awt.GridLayout(2,2));
 
@@ -31,7 +35,10 @@ public class SearchSlangPanel {
     searchSlangPanel3.add(searchSlangBtn);
 
     JPanel searchSlangPanel4 = new JPanel(new BorderLayout());
+    searchIndexLabel.setHorizontalAlignment(SwingConstants.CENTER);
     searchSlangPanel4.add(searchIndexLabel,BorderLayout.CENTER);
+    searchSlangPanel4.add(incSearchIndexBtn,BorderLayout.EAST);
+    searchSlangPanel4.add(decSearchIndexBtn,BorderLayout.WEST);
 
     this.searchPanel.add(searchSlangPanel1);
     this.searchPanel.add(searchSlangPanel2);
@@ -40,7 +47,20 @@ public class SearchSlangPanel {
   }
   public void addActionListenerToButton(java.awt.event.ActionListener listener) {
     this.searchSlangBtn.addActionListener(listener);
-
+  }
+  public void addActionListenerToIncIndex(java.awt.event.ActionListener listener) {
+    this.incSearchIndexBtn.addActionListener(listener);
+  }
+  public void addActionListenerToDecIndex(java.awt.event.ActionListener listener) {
+    this.decSearchIndexBtn.addActionListener(listener);
+  }
+  public void updateSearchIndexLabel(int index,int maxIndex){
+    if(index > maxIndex){
+      return;
+    }
+    this.searchIndex = index;
+    this.searchMaxIndex = maxIndex;
+    this.searchIndexLabel.setText(String.format("%d out of %d", this.searchIndex+1,this.searchMaxIndex+1));
   }
 
 
