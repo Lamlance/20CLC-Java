@@ -80,44 +80,12 @@ public class SearchSlangPanel {
     this.searchMaxIndex = searchMaxIndex;
   }
 
-  public JTextField getSearchKey_TxtFld() {
-    return this.searchKey_TxtFld;
+  public String getSearchKey(){
+    return this.searchKey_TxtFld.getText();
   }
-
-  public void setSearchKey_TxtFld(JTextField searchKey_TxtFld) {
-    this.searchKey_TxtFld = searchKey_TxtFld;
-  }
-
-  public JTextField getSearchDef_TxtFld() {
-    return this.searchDef_TxtFld;
-  }
-
-  public void setSearchDef_TxtFld(JTextField searchDef_TxtFld) {
-    this.searchDef_TxtFld = searchDef_TxtFld;
-  }
-
-  public JButton getSearchSlangBtn() {
-    return this.searchSlangBtn;
-  }
-
-  public void setSearchSlangBtn(JButton searchSlangBtn) {
-    this.searchSlangBtn = searchSlangBtn;
-  }
-
-  public JLabel getSearchIndexLabel() {
-    return this.searchIndexLabel;
-  }
-
-  public void setSearchIndexLabel(JLabel searchIndexLabel) {
-    this.searchIndexLabel = searchIndexLabel;
-  }
-
-  public JLabel getSearchStatusLabel() {
-    return this.searchStatusLabel;
-  }
-
-  public void setSearchStatusLabel(JLabel searchStatusLabel) {
-    this.searchStatusLabel = searchStatusLabel;
+  
+  public String getSearchDef(){
+    return this.searchDef_TxtFld.getText();
   }
 
   public JPanel getSearchPanel() {

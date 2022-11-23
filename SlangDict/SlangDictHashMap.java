@@ -26,9 +26,22 @@ public class SlangDictHashMap {
     return false;
   }
 
+  /**
+   * 
+   * @param key
+   * @return null if not found
+   */
   public String getSlangByKey(String key){
     return this.slangDict.get(key);
   }
+  
+  /**
+   * 
+   * @param key slang key
+   * @param def slang definition
+   * @param replaceFlag if true will replace the existing item
+   * @return 0 if failed; 1 if input a new item; 2 if replace/edit an existing item
+   */
   public int addSlang(String key,String def,boolean replaceFlag) {
     boolean containsKey = this.slangDict.containsKey(key);
 
@@ -38,6 +51,10 @@ public class SlangDictHashMap {
     }
     return 0;
     
+  }
+
+  public void removeSlang(String key){
+    this.slangDict.remove(key);
   }
   public Map<String,String> getSlangDict() {
     return this.slangDict;

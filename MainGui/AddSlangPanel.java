@@ -4,12 +4,21 @@ import javax.swing.*;
 import java.awt.*;
 
 public class AddSlangPanel {
-  private static final String[] ADD_OPTIONS = {"Add if duplicate","Don't replace if duplicate","Replace if duplicate"};
+  private static final String[] ADD_OPTIONS = {
+    "Add if duplicate","Don't replace if duplicate","Replace if duplicate",
+    "Edit if exist", "Delete if exist"
+  };
+
+  public final static String ADD_IF_DUPLICATE_FLAG = AddSlangPanel.ADD_OPTIONS[0];
+  public final static String NOT_REPLACE_IF_DUPLICATE = AddSlangPanel.ADD_OPTIONS[1];
+  public final static String REPLACE_IF_DUPLICATE = AddSlangPanel.ADD_OPTIONS[2];
+  public final static String EDIT_IF_EXIST = AddSlangPanel.ADD_OPTIONS[3];
+  public final static String DELETE_IF_EXIST = AddSlangPanel.ADD_OPTIONS[4];
 
   private JTextField newKey_TxtFld = new JTextField();
   private JTextField newDef_TxtFld = new JTextField();
   private JLabel inputStatusLabel = new JLabel("Status: none");
-  private JButton addSlangBtn = new JButton("Add slang");
+  private JButton addSlangBtn = new JButton("EXECUTE");
   private JComboBox<String> addOptions = new JComboBox<String>(AddSlangPanel.ADD_OPTIONS);
 
   private JPanel addSlangPanel = new JPanel(new java.awt.GridLayout(2,2));
@@ -18,16 +27,16 @@ public class AddSlangPanel {
 
     JPanel addSlangPanel1 = new JPanel();
     addSlangPanel1.setLayout(new java.awt.BorderLayout());
-    addSlangPanel1.add(new JLabel("New key"),BorderLayout.WEST);
+    addSlangPanel1.add(new JLabel("Key"),BorderLayout.WEST);
     addSlangPanel1.add(newKey_TxtFld,BorderLayout.CENTER);
 
     JPanel addSlangPanel2 = new JPanel();
     addSlangPanel2.setLayout(new java.awt.BorderLayout());
-    addSlangPanel2.add(new JLabel("New definition"),BorderLayout.WEST);
+    addSlangPanel2.add(new JLabel("Definition"),BorderLayout.WEST);
     addSlangPanel2.add(newDef_TxtFld,BorderLayout.CENTER);
 
     JPanel addSlangPanel3 = new JPanel();
-    addSlangPanel3.add(new JLabel("Add Option"));
+    addSlangPanel3.add(new JLabel("Option"));
     addSlangPanel3.add(this.addOptions);
 
     JPanel addSlangPanel4 = new JPanel();
@@ -78,6 +87,10 @@ public class AddSlangPanel {
 
   public JComboBox<String> getAddOptions() {
     return this.addOptions;
+  }
+
+  public String getCurrentOption(){
+    return (String)this.addOptions.getSelectedItem();
   }
 
   public void setAddOptions(JComboBox<String> addOptions) {

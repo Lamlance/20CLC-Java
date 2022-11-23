@@ -16,7 +16,7 @@ import SlangDict.SlangDictHashMap;
 
 public class SlangDictGui {
 
-  private static final String INPUT_OPTIONS_NEW = "Add new slang";
+  private static final String PANEL_OPTION_DICT_MANIPULATE = "Add/Edit/Delete slang";
   private static final String INPUT_OPTION_SEARCH = "Search a slang";
 
   private JFrame frame;
@@ -54,7 +54,7 @@ public class SlangDictGui {
     this.addSlangPanel.addActionListenerToButton(new AddSlangBtnHandle());
 
     JPanel addCardPanel = new JPanel(new java.awt.CardLayout());
-    addCardPanel.add(this.addSlangPanel.getAddSlangPanel(), SlangDictGui.INPUT_OPTIONS_NEW);
+    addCardPanel.add(this.addSlangPanel.getAddSlangPanel(), SlangDictGui.PANEL_OPTION_DICT_MANIPULATE);
 
     // ===================
     // Input search slang panel
@@ -69,7 +69,7 @@ public class SlangDictGui {
     // ====================
     // Tab Pane============
     JTabbedPane inputTabPanel = new JTabbedPane();
-    inputTabPanel.addTab(SlangDictGui.INPUT_OPTIONS_NEW, addCardPanel);
+    inputTabPanel.addTab(SlangDictGui.PANEL_OPTION_DICT_MANIPULATE, addCardPanel);
     inputTabPanel.addTab(SlangDictGui.INPUT_OPTION_SEARCH, searchCardPanel);
     this.frame.getContentPane().add(inputTabPanel, BorderLayout.PAGE_START);
     // ====================
@@ -91,19 +91,21 @@ public class SlangDictGui {
     this.frame.setSize(600, 600);
     this.frame.setVisible(true);
   }
+
   public void ListJumpToCurrentSearchIndex() {
     int searchId = searchSlangPanel.getSearchIndex();
     int searchIdMax = searchSlangPanel.getSearchMaxIndex();
-    if(this.searchIndexes.size() <= 0){
+    if (this.searchIndexes.size() <= 0) {
       return;
     }
-    if(searchId <= searchIdMax){
+    if (searchId <= searchIdMax) {
       int jumpId = this.searchIndexes.get(searchId);
 
       this.slangKeyList.ensureIndexIsVisible(jumpId);
       this.slangKeyList.setSelectedIndex(jumpId);
     }
   }
+
   class SlangKeyListSelectionHandle implements ListSelectionListener {
     @Override
     public void valueChanged(ListSelectionEvent e) {
@@ -125,13 +127,40 @@ public class SlangDictGui {
     public void actionPerformed(ActionEvent e) {
       String newKey = addSlangPanel.getNewKey_TxtFld().getText();
       String newDef = addSlangPanel.getNewDef_TxtFld().getText();
+      String currentOption = addSlangPanel.getCurrentOption();
+
+      if (currentOption == AddSlangPanel.DELETE_IF_EXIST && !(newDef.isBlank() || newDef.isEmpty()) ) {
+        if (listModel.removeElement(newKey)) {
+          slangDict.removeSlang(newKey);
+          addSlangPanel.getInputStatusLabel().setForeground(Color.GREEN);
+          addSlangPanel.getInputStatusLabel().setText("Status: delete successful");
+        } else {
+          addSlangPanel.getInputStatusLabel().setForeground(Color.RED);
+          addSlangPanel.getInputStatusLabel().setText("Status: slang key didn't exist");
+        }
+        return;
+      }
 
       if (newDef.isBlank() || newDef.isEmpty() || newKey.isEmpty() || newKey.isBlank()) {
         addSlangPanel.getInputStatusLabel().setForeground(Color.RED);
         addSlangPanel.getInputStatusLabel().setText("Status: invalid input");
         return;
       }
-      boolean replaceFlag = (addSlangPanel.getAddOptions().getSelectedIndex() != 0);
+
+      boolean replaceFlag = currentOption != AddSlangPanel.NOT_REPLACE_IF_DUPLICATE;
+
+      if (currentOption == AddSlangPanel.ADD_IF_DUPLICATE_FLAG) {
+        String current = slangDict.getSlangByKey(newKey);
+
+        newDef = (current != null) ? (String.format("%s || %s", current, newDef)) : newDef;
+      }
+
+      if (currentOption == AddSlangPanel.EDIT_IF_EXIST && (slangDict.getSlangByKey(newKey) == null)) {
+        addSlangPanel.getInputStatusLabel().setForeground(Color.RED);
+        addSlangPanel.getInputStatusLabel().setText("Status: slang key didn't exist");
+        return;
+      }
+
       int addAns = slangDict.addSlang(newKey, newDef, replaceFlag);
       if (addAns != 0) {
         addSlangPanel.getInputStatusLabel().setForeground(Color.GREEN);
@@ -144,13 +173,17 @@ public class SlangDictGui {
         addSlangPanel.getInputStatusLabel().setText("Status: input failed");
       }
     }
+
   }
-  class ChangeSearchIndexBtnHandle implements java.awt.event.ActionListener{
+
+  class ChangeSearchIndexBtnHandle implements java.awt.event.ActionListener {
     int valueChange = 0;
-    ChangeSearchIndexBtnHandle(int valueChangeInit){
+
+    ChangeSearchIndexBtnHandle(int valueChangeInit) {
       super();
       this.valueChange = valueChangeInit;
     }
+
     @Override
     public void actionPerformed(ActionEvent e) {
       try {
@@ -160,30 +193,49 @@ public class SlangDictGui {
         searchSlangPanel.updateSearchIndexLabel(currentId + this.valueChange, maxId);
         ListJumpToCurrentSearchIndex();
       } catch (Exception exception) {
-        return; 
+        return;
       }
-      
+
     }
-    
+
   }
+
   class SearchSlangBtnHandle implements java.awt.event.ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
       ArrayList<String> keyModelStrings = Collections.list(listModel.elements());
-      searchIndexes = this.SearchOnlyKey(keyModelStrings);
 
-      searchSlangPanel.updateSearchIndexLabel(0, searchIndexes.size()-1);
-      
+      String searchKey = searchSlangPanel.getSearchKey();
+      String searchDef = searchSlangPanel.getSearchDef();
+
+      searchIndexes = this.Search(keyModelStrings, searchKey, searchDef);
+
+      searchSlangPanel.updateSearchIndexLabel(0, searchIndexes.size() - 1);
+
       System.out.println(searchIndexes.size());
-      if(searchIndexes.size() != 0){
+
+      if (searchIndexes.size() != 0) {
         ListJumpToCurrentSearchIndex();
       }
     }
 
-    public ArrayList<Integer> SearchOnlyKey(ArrayList<String> keyArr) {
+    public ArrayList<Integer> Search(ArrayList<String> keyArr, String searchKey, String searchDef) {
       ArrayList<Integer> ansArrayList = new ArrayList<Integer>();
+      boolean skipKeyFlag = searchKey.isBlank() || searchKey.isEmpty();
+      boolean skipDefFlag = searchDef.isBlank() || searchDef.isEmpty();
+
+      if (skipDefFlag && skipKeyFlag) {
+        return ansArrayList;
+      }
+
       for (int i = 0; i < keyArr.size(); i++) {
-        if (keyArr.get(i).toLowerCase().contains(searchSlangPanel.getSearchKey_TxtFld().getText().toLowerCase())) {
+        String currKey = keyArr.get(i);
+        boolean searchKeySuccess = !skipKeyFlag && currKey.toLowerCase().contains(searchKey.toLowerCase());
+        boolean searchDefSuccess = !skipDefFlag
+            && slangDict.getSlangByKey(currKey).toLowerCase().contains(searchDef.toLowerCase());
+
+        if ((!skipDefFlag && !skipKeyFlag) ? (searchDefSuccess && searchKeySuccess)
+            : (searchKeySuccess || searchDefSuccess)) {
           ansArrayList.add(i);
         }
       }
