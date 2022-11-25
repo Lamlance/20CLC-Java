@@ -17,7 +17,8 @@ import SlangDict.SlangDictHashMap;
 public class SlangDictGui {
 
   private static final String PANEL_OPTION_DICT_MANIPULATE = "Add/Edit/Delete slang";
-  private static final String INPUT_OPTION_SEARCH = "Search a slang";
+  private static final String PANEL_OPTION_SEARCH = "Search a slang";
+  private static final String PANEL_OPTION_RANDOM = "I'm feeling lucky";
 
   private JFrame frame;
   private JTextArea defTextArea;
@@ -27,6 +28,7 @@ public class SlangDictGui {
 
   private AddSlangPanel addSlangPanel;
   private SearchSlangPanel searchSlangPanel;
+  private RandomSlangPanel randomSlangPanel;
 
   private String selectedKey = "";
   private SlangDictHashMap slangDict;
@@ -42,37 +44,13 @@ public class SlangDictGui {
   SlangDictGui() {
     slangDict = new SlangDictHashMap();
     slangDict.readFromFile("slang.txt");
+    System.out.println(slangDict.getSlangDict().size());
   }
 
   public void createGui() {
     JFrame.setDefaultLookAndFeelDecorated(true);
     this.frame = new JFrame("Slang Dictionary");
     this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-    // ====Input new Slang Panel
-    this.addSlangPanel = new AddSlangPanel();
-    this.addSlangPanel.addActionListenerToButton(new AddSlangBtnHandle());
-
-    JPanel addCardPanel = new JPanel(new java.awt.CardLayout());
-    addCardPanel.add(this.addSlangPanel.getAddSlangPanel(), SlangDictGui.PANEL_OPTION_DICT_MANIPULATE);
-
-    // ===================
-    // Input search slang panel
-    this.searchSlangPanel = new SearchSlangPanel();
-    this.searchSlangPanel.addActionListenerToButton(new SearchSlangBtnHandle());
-    this.searchSlangPanel.addActionListenerToIncIndex(new ChangeSearchIndexBtnHandle(1));
-    this.searchSlangPanel.addActionListenerToDecIndex(new ChangeSearchIndexBtnHandle(-1));
-
-    JPanel searchCardPanel = new JPanel(new java.awt.CardLayout());
-    searchCardPanel.add(searchSlangPanel.getSearchPanel(), SlangDictGui.INPUT_OPTION_SEARCH);
-
-    // ====================
-    // Tab Pane============
-    JTabbedPane inputTabPanel = new JTabbedPane();
-    inputTabPanel.addTab(SlangDictGui.PANEL_OPTION_DICT_MANIPULATE, addCardPanel);
-    inputTabPanel.addTab(SlangDictGui.INPUT_OPTION_SEARCH, searchCardPanel);
-    this.frame.getContentPane().add(inputTabPanel, BorderLayout.PAGE_START);
-    // ====================
 
     String[] slangKeys = this.slangDict.getSlangDict().keySet().toArray(new String[0]);
     listModel = new DefaultListModel<String>();
@@ -88,8 +66,48 @@ public class SlangDictGui {
     JScrollPane textScroll = new JScrollPane(this.defTextArea);
     this.frame.add(textScroll, BorderLayout.CENTER);
 
+    // ====Input new Slang Panel
+    this.addSlangPanel = new AddSlangPanel();
+    this.addSlangPanel.addActionListenerToButton(new AddSlangBtnHandle());
+
+    JPanel addCardPanel = new JPanel(new java.awt.CardLayout());
+    addCardPanel.add(this.addSlangPanel.getAddSlangPanel(), SlangDictGui.PANEL_OPTION_DICT_MANIPULATE);
+    // ===================
+
+    // Input search slang panel
+    this.searchSlangPanel = new SearchSlangPanel();
+    this.searchSlangPanel.addActionListenerToButton(new SearchSlangBtnHandle());
+    this.searchSlangPanel.addActionListenerToIncIndex(new ChangeSearchIndexBtnHandle(1));
+    this.searchSlangPanel.addActionListenerToDecIndex(new ChangeSearchIndexBtnHandle(-1));
+
+    JPanel searchCardPanel = new JPanel(new java.awt.CardLayout());
+    searchCardPanel.add(searchSlangPanel.getSearchPanel(), SlangDictGui.PANEL_OPTION_SEARCH);
+    // ====================
+
+    // Random slang Panel==
+    this.randomSlangPanel = new RandomSlangPanel(this.listModel.size());
+    this.randomSlangPanel.SetRandomButtonHandler(new RandomSlangButtonHandler());
+
+    JPanel randomCardPanel = new JPanel(new java.awt.CardLayout());
+    randomCardPanel.add(randomSlangPanel.getRandomPanel(), SlangDictGui.PANEL_OPTION_RANDOM);
+    // =====================
+
+    // Tab Pane============
+    JTabbedPane inputTabPanel = new JTabbedPane();
+    inputTabPanel.addTab(SlangDictGui.PANEL_OPTION_DICT_MANIPULATE, addCardPanel);
+    inputTabPanel.addTab(SlangDictGui.PANEL_OPTION_SEARCH, searchCardPanel);
+    inputTabPanel.addTab(SlangDictGui.PANEL_OPTION_RANDOM, randomCardPanel);
+
+    this.frame.getContentPane().add(inputTabPanel, BorderLayout.PAGE_START);
+    // ====================
+
     this.frame.setSize(600, 600);
     this.frame.setVisible(true);
+  }
+
+  public void ListJumpToIndex(int index) {
+    this.slangKeyList.ensureIndexIsVisible(index);
+    this.slangKeyList.setSelectedIndex(index);
   }
 
   public void ListJumpToCurrentSearchIndex() {
@@ -100,15 +118,24 @@ public class SlangDictGui {
     }
     if (searchId <= searchIdMax) {
       int jumpId = this.searchIndexes.get(searchId);
-
-      this.slangKeyList.ensureIndexIsVisible(jumpId);
-      this.slangKeyList.setSelectedIndex(jumpId);
+      this.ListJumpToIndex(jumpId);
     }
   }
 
+  public void sysOutRunTime(long nanoTime,String msg){
+    double msTime = ((double)nanoTime) / 100000;
+    double time = (msTime) / 1000;
+    System.out.println(String.format("%s run time: %d(ns) | %f(ms) | %f(s)", msg,nanoTime,msTime,time));
+  }
+
+  /**
+   * Slang dict gui. Handler for slect slang
+   */
   class SlangKeyListSelectionHandle implements ListSelectionListener {
     @Override
     public void valueChanged(ListSelectionEvent e) {
+      long start = System.nanoTime();
+
       if (e.getValueIsAdjusting()) {
         return;
       }
@@ -119,17 +146,25 @@ public class SlangDictGui {
       selectedKey = selected;
       String def = slangDict.getSlangByKey(selectedKey);
       defTextArea.append(String.format("%s \n", def));
+
+      long end = System.nanoTime();
+      sysOutRunTime(end-start,"Select Slang");
     }
   }
 
+  /**
+   * Handler for add slang button
+   */
   class AddSlangBtnHandle implements java.awt.event.ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
+      long start = System.currentTimeMillis();
+
       String newKey = addSlangPanel.getNewKey_TxtFld().getText();
       String newDef = addSlangPanel.getNewDef_TxtFld().getText();
       String currentOption = addSlangPanel.getCurrentOption();
 
-      if (currentOption == AddSlangPanel.DELETE_IF_EXIST && !(newDef.isBlank() || newDef.isEmpty()) ) {
+      if (currentOption == AddSlangPanel.DELETE_IF_EXIST && !(newDef.isBlank() || newDef.isEmpty())) {
         if (listModel.removeElement(newKey)) {
           slangDict.removeSlang(newKey);
           addSlangPanel.getInputStatusLabel().setForeground(Color.GREEN);
@@ -176,6 +211,9 @@ public class SlangDictGui {
 
   }
 
+  /**
+   * Change search result button handler
+   */
   class ChangeSearchIndexBtnHandle implements java.awt.event.ActionListener {
     int valueChange = 0;
 
@@ -200,9 +238,14 @@ public class SlangDictGui {
 
   }
 
+  /**
+   * Search slang button handler
+   */
   class SearchSlangBtnHandle implements java.awt.event.ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
+      long start = System.nanoTime();
+
       ArrayList<String> keyModelStrings = Collections.list(listModel.elements());
 
       String searchKey = searchSlangPanel.getSearchKey();
@@ -212,11 +255,12 @@ public class SlangDictGui {
 
       searchSlangPanel.updateSearchIndexLabel(0, searchIndexes.size() - 1);
 
-      System.out.println(searchIndexes.size());
-
       if (searchIndexes.size() != 0) {
         ListJumpToCurrentSearchIndex();
       }
+
+      long end = System.nanoTime();
+      sysOutRunTime(end - start, "Search slang");
     }
 
     public ArrayList<Integer> Search(ArrayList<String> keyArr, String searchKey, String searchDef) {
@@ -242,6 +286,17 @@ public class SlangDictGui {
       return ansArrayList;
     }
 
+  }
+
+  class RandomSlangButtonHandler implements java.awt.event.ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      int randomIndex = randomSlangPanel.GetRandomIndex();
+      String randomKey = listModel.get(randomIndex);
+      ListJumpToIndex(randomIndex);
+      String luckyMsg = String.format("Your lucky slang '%s': '%s' ", randomKey, slangDict.getSlangByKey(randomKey));
+      randomSlangPanel.getYourLuckWordLabel().setText(luckyMsg);
+    }
   }
 
 }

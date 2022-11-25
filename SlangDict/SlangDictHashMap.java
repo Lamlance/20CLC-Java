@@ -52,7 +52,7 @@ public class SlangDictHashMap {
     return 0;
     
   }
-
+  
   public void removeSlang(String key){
     this.slangDict.remove(key);
   }
