@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,6 +20,9 @@ public class SlangDictGui {
   private static final String PANEL_OPTION_DICT_MANIPULATE = "Add/Edit/Delete slang";
   private static final String PANEL_OPTION_SEARCH = "Search a slang";
   private static final String PANEL_OPTION_RANDOM = "I'm feeling lucky";
+  private static final String PANEL_OPTION_GUESS_SLANG = "Guess some slang";
+  private static final String PANEL_OPTION_GUESS_DEF = "Guess some definition";
+  private static final Random randomizer = new Random();
 
   private JFrame frame;
   private JTextArea defTextArea;
@@ -29,6 +33,10 @@ public class SlangDictGui {
   private AddSlangPanel addSlangPanel;
   private SearchSlangPanel searchSlangPanel;
   private RandomSlangPanel randomSlangPanel;
+  private GameSlangPanel guessSlangGame;
+  private GameSlangPanel guessDefGame;
+
+  private JTabbedPane inputTabPanel;
 
   private String selectedKey = "";
   private SlangDictHashMap slangDict;
@@ -92,16 +100,34 @@ public class SlangDictGui {
     randomCardPanel.add(randomSlangPanel.getRandomPanel(), SlangDictGui.PANEL_OPTION_RANDOM);
     // =====================
 
+    // Guess slang game ============
+    this.guessSlangGame = new GameSlangPanel();
+    guessSlangGame.SetOptionButtonActionListener(new GuessSlangGameOptionsHandler());
+    guessSlangGame.SetResetButtonActionListener(new GuessGameResetsHandler());
+    JPanel guessSlangGameCardPanel = new JPanel(new java.awt.CardLayout());
+    guessSlangGameCardPanel.add(guessSlangGame.getGanePanel(), SlangDictGui.PANEL_OPTION_GUESS_SLANG);
+    // =====================
+
+    // Guess slang game ============
+    this.guessDefGame = new GameSlangPanel();
+    guessDefGame.SetOptionButtonActionListener(new GuessDefGameOptionsHandler());
+    guessDefGame.SetResetButtonActionListener(new GuessGameResetsHandler());
+    JPanel guessDefGameCardPanel = new JPanel(new java.awt.CardLayout());
+    guessDefGameCardPanel.add(guessDefGame.getGanePanel(), SlangDictGui.PANEL_OPTION_GUESS_DEF);
+    // =====================
+
     // Tab Pane============
-    JTabbedPane inputTabPanel = new JTabbedPane();
+    this.inputTabPanel = new JTabbedPane();
     inputTabPanel.addTab(SlangDictGui.PANEL_OPTION_DICT_MANIPULATE, addCardPanel);
     inputTabPanel.addTab(SlangDictGui.PANEL_OPTION_SEARCH, searchCardPanel);
     inputTabPanel.addTab(SlangDictGui.PANEL_OPTION_RANDOM, randomCardPanel);
+    inputTabPanel.addTab(SlangDictGui.PANEL_OPTION_GUESS_SLANG, guessSlangGameCardPanel);
+    inputTabPanel.addTab(SlangDictGui.PANEL_OPTION_GUESS_DEF, guessDefGameCardPanel);
 
     this.frame.getContentPane().add(inputTabPanel, BorderLayout.PAGE_START);
     // ====================
 
-    this.frame.setSize(600, 600);
+    this.frame.setSize(800, 600);
     this.frame.setVisible(true);
   }
 
@@ -122,10 +148,31 @@ public class SlangDictGui {
     }
   }
 
-  public void sysOutRunTime(long nanoTime,String msg){
-    double msTime = ((double)nanoTime) / 100000;
+  public void sysOutRunTime(long nanoTime, String msg) {
+    double msTime = ((double) nanoTime) / 100000;
     double time = (msTime) / 1000;
-    System.out.println(String.format("%s run time: %d(ns) | %f(ms) | %f(s)", msg,nanoTime,msTime,time));
+    System.out.println(String.format("%s run time: %d(ns) | %f(ms) | %f(s)", msg, nanoTime, msTime, time));
+  }
+
+  /**
+   * 
+   * @return size 5 list model index , 1st is the answer index , 4 remain is the
+   *         options index
+   */
+  private int[] GenerateGuessGame() {
+    int listModelSize = this.listModel.size();
+
+    int[] indexes = {
+        SlangDictGui.randomizer.nextInt(listModelSize), SlangDictGui.randomizer.nextInt(listModelSize),
+        SlangDictGui.randomizer.nextInt(listModelSize), SlangDictGui.randomizer.nextInt(listModelSize)
+    };
+
+    int[] ans = {
+        SlangDictGui.randomizer.nextInt(indexes.length),
+        indexes[0], indexes[1], indexes[3], indexes[4]
+    };
+
+    return ans;
   }
 
   /**
@@ -148,7 +195,7 @@ public class SlangDictGui {
       defTextArea.append(String.format("%s \n", def));
 
       long end = System.nanoTime();
-      sysOutRunTime(end-start,"Select Slang");
+      sysOutRunTime(end - start, "Select Slang");
     }
   }
 
@@ -299,4 +346,57 @@ public class SlangDictGui {
     }
   }
 
+  class GuessSlangGameOptionsHandler implements java.awt.event.ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      guessSlangGame.CalculateAnswer(((JButton) e.getSource()).getText());
+
+      int[] generated = GenerateGuessGame();
+      String[] options = {
+          listModel.get(generated[1]), listModel.get(generated[2]),
+          listModel.get(generated[3]), listModel.get(generated[4])
+      };
+      String answer = listModel.get(generated[0]);
+      String question = String.format("slang for %s",
+          slangDict.getSlangByKey(listModel.get(generated[0])));
+
+      guessSlangGame.SetOptions(options);
+      guessSlangGame.SetCorrectAnswer(answer);
+      guessSlangGame.SetQuestion(question);
+    }
+  }
+  class GuessDefGameOptionsHandler implements java.awt.event.ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      guessDefGame.CalculateAnswer(((JButton) e.getSource()).getText());
+
+      int[] generated = GenerateGuessGame();
+      String[] options = {
+          slangDict.getSlangByKey(listModel.get(generated[1])),
+          slangDict.getSlangByKey(listModel.get(generated[2])),
+          slangDict.getSlangByKey(listModel.get(generated[3])),
+          slangDict.getSlangByKey(listModel.get(generated[4]))
+      };
+      String answer = slangDict.getSlangByKey(listModel.get(generated[0]));
+      String question = String.format("definition of %s",
+          listModel.get(generated[0]));
+
+      guessDefGame.SetOptions(options);
+      guessDefGame.SetCorrectAnswer(answer);
+      guessDefGame.SetQuestion(question);
+    }
+  }
+  class GuessGameResetsHandler implements java.awt.event.ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      String currentTab = inputTabPanel.getTitleAt(inputTabPanel.getSelectedIndex());
+
+      if(currentTab == SlangDictGui.PANEL_OPTION_GUESS_SLANG){
+        guessSlangGame.RestartGame();
+      }
+      if(currentTab == SlangDictGui.PANEL_OPTION_GUESS_DEF){
+        guessDefGame.RestartGame();
+      }
+    }
+  }
 }
