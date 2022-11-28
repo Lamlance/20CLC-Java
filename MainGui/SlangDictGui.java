@@ -17,11 +17,12 @@ import SlangDict.SlangDictHashMap;
 
 public class SlangDictGui {
 
-  private static final String PANEL_OPTION_DICT_MANIPULATE = "Add/Edit/Delete slang";
+  private static final String PANEL_OPTION_DICT_MANIPULATE = "Manipulate dictionary";
   private static final String PANEL_OPTION_SEARCH = "Search a slang";
-  private static final String PANEL_OPTION_RANDOM = "I'm feeling lucky";
-  private static final String PANEL_OPTION_GUESS_SLANG = "Guess some slang";
-  private static final String PANEL_OPTION_GUESS_DEF = "Guess some definition";
+  private static final String PANEL_OPTION_RANDOM = "Feeling lucky";
+  private static final String PANEL_OPTION_GUESS_SLANG = "Guess slang game";
+  private static final String PANEL_OPTION_GUESS_DEF = "Guess definition game";
+  private static final String PANEL_OPTION_LOG = "Log";
   private static final Random randomizer = new Random();
 
   private JFrame frame;
@@ -35,7 +36,7 @@ public class SlangDictGui {
   private RandomSlangPanel randomSlangPanel;
   private GameSlangPanel guessSlangGame;
   private GameSlangPanel guessDefGame;
-
+  private JTextArea logTextArea;
   private JTabbedPane inputTabPanel;
 
   private String selectedKey = "";
@@ -70,9 +71,17 @@ public class SlangDictGui {
     JScrollPane dictKeyScrollPane = new JScrollPane(this.slangKeyList);
     this.frame.add(dictKeyScrollPane, BorderLayout.WEST);
 
+    this.logTextArea = new JTextArea("Select something\n");
+    this.logTextArea.setEditable(false);
     this.defTextArea = new JTextArea("Select something\n");
-    JScrollPane textScroll = new JScrollPane(this.defTextArea);
-    this.frame.add(textScroll, BorderLayout.CENTER);
+    this.defTextArea.setEditable(false);
+    JScrollPane textDefScroll = new JScrollPane(this.defTextArea);
+    JScrollPane textLogScroll = new JScrollPane(this.logTextArea);
+
+    JPanel textAreaPanel = new JPanel(new GridLayout(1,2));
+    textAreaPanel.add(textDefScroll);
+    textAreaPanel.add(textLogScroll);
+    this.frame.add(textAreaPanel, BorderLayout.CENTER);
 
     // ====Input new Slang Panel
     this.addSlangPanel = new AddSlangPanel();
@@ -151,7 +160,9 @@ public class SlangDictGui {
   public void sysOutRunTime(long nanoTime, String msg) {
     double msTime = ((double) nanoTime) / 100000;
     double time = (msTime) / 1000;
-    System.out.println(String.format("%s run time: %d(ns) | %f(ms) | %f(s)", msg, nanoTime, msTime, time));
+    String logString = String.format("%s run time: %f(ms) | %f(s) \n", msg, msTime, time);
+    System.out.println(logString);
+    this.logTextArea.append(logString);
   }
 
   /**
@@ -168,8 +179,8 @@ public class SlangDictGui {
     };
 
     int[] ans = {
-        SlangDictGui.randomizer.nextInt(indexes.length),
-        indexes[0], indexes[1], indexes[3], indexes[4]
+        indexes[SlangDictGui.randomizer.nextInt(indexes.length)],
+        indexes[0], indexes[1], indexes[2], indexes[3]
     };
 
     return ans;
@@ -181,8 +192,6 @@ public class SlangDictGui {
   class SlangKeyListSelectionHandle implements ListSelectionListener {
     @Override
     public void valueChanged(ListSelectionEvent e) {
-      long start = System.nanoTime();
-
       if (e.getValueIsAdjusting()) {
         return;
       }
@@ -193,9 +202,6 @@ public class SlangDictGui {
       selectedKey = selected;
       String def = slangDict.getSlangByKey(selectedKey);
       defTextArea.append(String.format("%s \n", def));
-
-      long end = System.nanoTime();
-      sysOutRunTime(end - start, "Select Slang");
     }
   }
 
@@ -205,13 +211,15 @@ public class SlangDictGui {
   class AddSlangBtnHandle implements java.awt.event.ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
-      long start = System.currentTimeMillis();
+      long start = System.nanoTime();
 
       String newKey = addSlangPanel.getNewKey_TxtFld().getText();
       String newDef = addSlangPanel.getNewDef_TxtFld().getText();
       String currentOption = addSlangPanel.getCurrentOption();
 
-      if (currentOption == AddSlangPanel.DELETE_IF_EXIST && !(newDef.isBlank() || newDef.isEmpty())) {
+      if (currentOption == AddSlangPanel.DELETE_IF_EXIST && 
+          ( !newKey.isBlank() || !newDef.isEmpty())
+      ) {
         if (listModel.removeElement(newKey)) {
           slangDict.removeSlang(newKey);
           addSlangPanel.getInputStatusLabel().setForeground(Color.GREEN);
@@ -254,8 +262,10 @@ public class SlangDictGui {
         addSlangPanel.getInputStatusLabel().setForeground(Color.RED);
         addSlangPanel.getInputStatusLabel().setText("Status: input failed");
       }
-    }
 
+      long end = System.nanoTime();
+      sysOutRunTime(end-start,"Manipulate dictionary");
+    }    
   }
 
   /**
@@ -308,6 +318,13 @@ public class SlangDictGui {
 
       long end = System.nanoTime();
       sysOutRunTime(end - start, "Search slang");
+
+      logTextArea.append("====Searches find==== \n");
+      for (int index : searchIndexes) {
+        String key = listModel.get(index);
+        logTextArea.append(String.format("%s: %s \n", 
+        key,slangDict.getSlangByKey(key)));
+      }
     }
 
     public ArrayList<Integer> Search(ArrayList<String> keyArr, String searchKey, String searchDef) {
