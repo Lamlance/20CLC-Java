@@ -19,6 +19,8 @@ public class AddSlangPanel {
   private JTextField newDef_TxtFld = new JTextField();
   private JLabel inputStatusLabel = new JLabel("Status: none");
   private JButton addSlangBtn = new JButton("EXECUTE");
+  private JButton resetDictBtn = new JButton("RESET DICTIONARY");
+
   private JComboBox<String> addOptions = new JComboBox<String>(AddSlangPanel.ADD_OPTIONS);
 
   private JPanel addSlangPanel = new JPanel(new java.awt.GridLayout(2,2));
@@ -38,10 +40,12 @@ public class AddSlangPanel {
     JPanel addSlangPanel3 = new JPanel();
     addSlangPanel3.add(new JLabel("Option"));
     addSlangPanel3.add(this.addOptions);
+    addSlangPanel3.add(this.inputStatusLabel);
 
     JPanel addSlangPanel4 = new JPanel();
-    addSlangPanel4.add(this.inputStatusLabel);
     addSlangPanel4.add(addSlangBtn);
+    addSlangPanel4.add(this.resetDictBtn);
+
     
     this.addSlangPanel.add(addSlangPanel1);
     this.addSlangPanel.add(addSlangPanel2);
@@ -50,9 +54,10 @@ public class AddSlangPanel {
   }
   public void addActionListenerToButton(java.awt.event.ActionListener listener) {
     this.addSlangBtn.addActionListener(listener);
-
   }
-  
+  public void addActionListenerToReset(java.awt.event.ActionListener listener) {
+    this.resetDictBtn.addActionListener(listener);
+  }
   public JTextField getNewKey_TxtFld() {
     return this.newKey_TxtFld;
   }

@@ -4,9 +4,11 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class SlangDictHashMap {
   Map<String,String> slangDict = new HashMap<String,String>();
+  Map<String,String> backupDict = new HashMap<String,String>();
 
   public boolean readFromFile(String fileName) {
     try (BufferedReader fileReader = new BufferedReader(new FileReader(fileName))) {
@@ -17,6 +19,7 @@ public class SlangDictHashMap {
           String key = values[0];
           String def = values[1];
           this.slangDict.put(key, def);
+          this.backupDict.put(key, def);
         }
       }
       return true;
@@ -59,8 +62,14 @@ public class SlangDictHashMap {
   public Map<String,String> getSlangDict() {
     return this.slangDict;
   }
-
   public void setSlangDict(Map<String,String> slangDict) {
     this.slangDict = slangDict;
+  }
+  public void restoreDefault(){
+    slangDict = new HashMap<String,String>(backupDict);
+  }
+  
+  public Set<String> getAllKeys() {
+    return this.slangDict.keySet();
   }
 }

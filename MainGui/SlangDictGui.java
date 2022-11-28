@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
+import java.util.Set;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,6 +45,9 @@ public class SlangDictGui {
 
   private ArrayList<Integer> searchIndexes = new ArrayList<Integer>();
 
+  private boolean stagedForDeletion = false;
+  private String keyStagedForDeletion = "";
+
   public static void main(String[] args) {
     SlangDictGui gui = new SlangDictGui();
     gui.createGui();
@@ -78,7 +82,7 @@ public class SlangDictGui {
     JScrollPane textDefScroll = new JScrollPane(this.defTextArea);
     JScrollPane textLogScroll = new JScrollPane(this.logTextArea);
 
-    JPanel textAreaPanel = new JPanel(new GridLayout(1,2));
+    JPanel textAreaPanel = new JPanel(new GridLayout(1, 2));
     textAreaPanel.add(textDefScroll);
     textAreaPanel.add(textLogScroll);
     this.frame.add(textAreaPanel, BorderLayout.CENTER);
@@ -86,6 +90,7 @@ public class SlangDictGui {
     // ====Input new Slang Panel
     this.addSlangPanel = new AddSlangPanel();
     this.addSlangPanel.addActionListenerToButton(new AddSlangBtnHandle());
+    this.addSlangPanel.addActionListenerToReset(new ResetButtonHandler());
 
     JPanel addCardPanel = new JPanel(new java.awt.CardLayout());
     addCardPanel.add(this.addSlangPanel.getAddSlangPanel(), SlangDictGui.PANEL_OPTION_DICT_MANIPULATE);
@@ -209,6 +214,15 @@ public class SlangDictGui {
    * Handler for add slang button
    */
   class AddSlangBtnHandle implements java.awt.event.ActionListener {
+    public boolean deleteSlangByKey(String newKey) {
+
+      if (listModel.removeElement(newKey)) {
+        slangDict.removeSlang(newKey);
+        return true;
+      }
+      return false;
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
       long start = System.nanoTime();
@@ -217,17 +231,26 @@ public class SlangDictGui {
       String newDef = addSlangPanel.getNewDef_TxtFld().getText();
       String currentOption = addSlangPanel.getCurrentOption();
 
-      if (currentOption == AddSlangPanel.DELETE_IF_EXIST && 
-          ( !newKey.isBlank() || !newDef.isEmpty())
-      ) {
-        if (listModel.removeElement(newKey)) {
-          slangDict.removeSlang(newKey);
-          addSlangPanel.getInputStatusLabel().setForeground(Color.GREEN);
-          addSlangPanel.getInputStatusLabel().setText("Status: delete successful");
-        } else {
+      if (stagedForDeletion == true )  {
+        if((currentOption == AddSlangPanel.DELETE_IF_EXIST) && !newKey.isBlank()){
+          String ans = deleteSlangByKey(newKey) ? "Delete successful" : "Key doesn't exist";
           addSlangPanel.getInputStatusLabel().setForeground(Color.RED);
-          addSlangPanel.getInputStatusLabel().setText("Status: slang key didn't exist");
+          addSlangPanel.getInputStatusLabel().setText(ans);
+        }else{
+          addSlangPanel.getInputStatusLabel().setForeground(Color.RED);
+          addSlangPanel.getInputStatusLabel().setText("Delete canceled");
         }
+        stagedForDeletion = false;
+        addSlangPanel.getNewKey_TxtFld().setEditable(true);
+        return;
+      }
+
+      stagedForDeletion = false;
+
+      if (currentOption == AddSlangPanel.DELETE_IF_EXIST && (!newKey.isBlank())) {
+        stagedForDeletion = true;
+        addSlangPanel.getNewKey_TxtFld().setEditable(false);
+        defTextArea.append("Excute again to confirm deletion, Change option and press execute to cancel \n");
         return;
       }
 
@@ -264,8 +287,8 @@ public class SlangDictGui {
       }
 
       long end = System.nanoTime();
-      sysOutRunTime(end-start,"Manipulate dictionary");
-    }    
+      sysOutRunTime(end - start, "Manipulate dictionary");
+    }
   }
 
   /**
@@ -322,8 +345,8 @@ public class SlangDictGui {
       logTextArea.append("====Searches find==== \n");
       for (int index : searchIndexes) {
         String key = listModel.get(index);
-        logTextArea.append(String.format("%s: %s \n", 
-        key,slangDict.getSlangByKey(key)));
+        logTextArea.append(String.format("%s: %s \n",
+            key, slangDict.getSlangByKey(key)));
       }
     }
 
@@ -382,6 +405,7 @@ public class SlangDictGui {
       guessSlangGame.SetQuestion(question);
     }
   }
+
   class GuessDefGameOptionsHandler implements java.awt.event.ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -403,16 +427,32 @@ public class SlangDictGui {
       guessDefGame.SetQuestion(question);
     }
   }
+
   class GuessGameResetsHandler implements java.awt.event.ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
       String currentTab = inputTabPanel.getTitleAt(inputTabPanel.getSelectedIndex());
 
-      if(currentTab == SlangDictGui.PANEL_OPTION_GUESS_SLANG){
+      if (currentTab == SlangDictGui.PANEL_OPTION_GUESS_SLANG) {
         guessSlangGame.RestartGame();
       }
-      if(currentTab == SlangDictGui.PANEL_OPTION_GUESS_DEF){
+      if (currentTab == SlangDictGui.PANEL_OPTION_GUESS_DEF) {
         guessDefGame.RestartGame();
+      }
+    }
+  }
+
+  class ResetButtonHandler implements java.awt.event.ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      slangKeyList.setSelectedIndex(-1);
+
+      Set<String> keySetDefault = slangDict.getAllKeys();
+      slangDict.restoreDefault();      
+      listModel.removeAllElements();
+
+      for (String string : keySetDefault) {
+        listModel.addElement(string);
       }
     }
   }
