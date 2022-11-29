@@ -66,6 +66,11 @@ public class SlangDictHashMap {
     this.slangDict = slangDict;
   }
   public void restoreDefault(){
+    slangDict.clear();
+    //Set<String> keys = backupDict.keySet();
+
+    slangDict.putAll(backupDict);
+
     slangDict = new HashMap<String,String>(backupDict);
   }
   
