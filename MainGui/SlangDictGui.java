@@ -248,9 +248,16 @@ public class SlangDictGui {
       stagedForDeletion = false;
 
       if (currentOption == AddSlangPanel.DELETE_IF_EXIST && (!newKey.isBlank())) {
-        stagedForDeletion = true;
-        addSlangPanel.getNewKey_TxtFld().setEditable(false);
-        defTextArea.append("Excute again to confirm deletion, Change option and press execute to cancel \n");
+        if(listModel.contains(newKey)){
+          stagedForDeletion = true;
+          addSlangPanel.getNewKey_TxtFld().setEditable(false);
+          addSlangPanel.getInputStatusLabel().setForeground(Color.RED);
+          addSlangPanel.getInputStatusLabel().setText("Staging for deletion");
+          logTextArea.append("Excute again to confirm deletion, Change option and press execute to cancel \n");
+        }else{
+          addSlangPanel.getInputStatusLabel().setForeground(Color.RED);
+          addSlangPanel.getInputStatusLabel().setText("Key doesn't exist");
+        }
         return;
       }
 

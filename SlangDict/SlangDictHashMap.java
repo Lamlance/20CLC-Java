@@ -9,7 +9,7 @@ import java.util.Set;
 public class SlangDictHashMap {
   Map<String,String> slangDict = new HashMap<String,String>();
   Map<String,String> backupDict = new HashMap<String,String>();
-
+  
   public boolean readFromFile(String fileName) {
     try (BufferedReader fileReader = new BufferedReader(new FileReader(fileName))) {
       String lineData = null;

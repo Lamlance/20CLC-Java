@@ -55,7 +55,7 @@ public class SearchSlangPanel {
     this.decSearchIndexBtn.addActionListener(listener);
   }
   public void updateSearchIndexLabel(int index,int maxIndex){
-    if(index > maxIndex){
+    if(index > maxIndex || index < 0){
       return;
     }
     this.searchIndex = index;
