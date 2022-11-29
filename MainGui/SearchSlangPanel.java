@@ -2,8 +2,11 @@ package MainGui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.Serializable;
 
-public class SearchSlangPanel {
+public class SearchSlangPanel implements Serializable {
+  private static final long serialVersionUID = 1L;
+
   private int searchIndex = 0;
   private int searchMaxIndex = 0;
 

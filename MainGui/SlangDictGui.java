@@ -3,6 +3,14 @@ package MainGui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
@@ -16,14 +24,15 @@ import javax.swing.event.ListSelectionListener;
 
 import SlangDict.SlangDictHashMap;
 
-public class SlangDictGui {
-
+public class SlangDictGui implements Serializable {
+  private static final long serialVersionUID = 1L;
+  private SlangDictGui mysSelf = this;
   private static final String PANEL_OPTION_DICT_MANIPULATE = "Manipulate dictionary";
   private static final String PANEL_OPTION_SEARCH = "Search a slang";
   private static final String PANEL_OPTION_RANDOM = "Feeling lucky";
   private static final String PANEL_OPTION_GUESS_SLANG = "Guess slang game";
   private static final String PANEL_OPTION_GUESS_DEF = "Guess definition game";
-  private static final String PANEL_OPTION_LOG = "Log";
+  private static final String SAVE_DICTIONARY = "Dictionary.LAM";
   private static final Random randomizer = new Random();
 
   private JFrame frame;
@@ -46,13 +55,24 @@ public class SlangDictGui {
   private ArrayList<Integer> searchIndexes = new ArrayList<Integer>();
 
   private boolean stagedForDeletion = false;
-  private String keyStagedForDeletion = "";
-
   private boolean stagedForReset = false;
 
   public static void main(String[] args) {
-    SlangDictGui gui = new SlangDictGui();
-    gui.createGui();
+    boolean succesRestore = false;
+    try {
+      FileInputStream fi = new FileInputStream(new File(SlangDictGui.SAVE_DICTIONARY));
+      ObjectInputStream oi = new ObjectInputStream(fi);
+      SlangDictGui gui = (SlangDictGui) oi.readObject();
+      gui.createGui();
+      succesRestore = true;
+    } catch (Exception e) {
+      System.out.println(e.toString());
+    }
+    if (succesRestore == false) {
+      System.out.println("Restore failed");
+      SlangDictGui gui = new SlangDictGui();
+      gui.createGui();
+    }
 
   }
 
@@ -66,6 +86,7 @@ public class SlangDictGui {
     JFrame.setDefaultLookAndFeelDecorated(true);
     this.frame = new JFrame("Slang Dictionary 20127047");
     this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    this.frame.addWindowListener(new WindowCloseHandler());
 
     String[] slangKeys = this.slangDict.getSlangDict().keySet().toArray(new String[0]);
     listModel = new DefaultListModel<String>();
@@ -191,6 +212,56 @@ public class SlangDictGui {
     };
 
     return ans;
+  }
+
+  class WindowCloseHandler implements WindowListener {
+    @Override
+    public void windowOpened(WindowEvent e) {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void windowClosing(WindowEvent e) {
+      try {
+        FileOutputStream f = new FileOutputStream(new File(SlangDictGui.SAVE_DICTIONARY));
+        ObjectOutputStream o = new ObjectOutputStream(f);
+        o.writeObject(mysSelf);
+      } catch (Exception err) {
+
+      }
+
+    }
+
+    @Override
+    public void windowClosed(WindowEvent e) {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void windowIconified(WindowEvent e) {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void windowDeiconified(WindowEvent e) {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void windowActivated(WindowEvent e) {
+      // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void windowDeactivated(WindowEvent e) {
+      // TODO Auto-generated method stub
+
+    }
   }
 
   /**

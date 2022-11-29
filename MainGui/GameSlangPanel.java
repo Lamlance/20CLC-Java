@@ -2,9 +2,11 @@ package MainGui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.Serializable;
 
-public class GameSlangPanel {
+public class GameSlangPanel  implements Serializable {
   private JPanel gamePanel = new JPanel(new BorderLayout());
+  private static final long serialVersionUID = 1L;
 
   private JLabel questionLbl = new JLabel();
 

@@ -2,8 +2,11 @@ package MainGui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.Serializable;
 
-public class AddSlangPanel {
+public class AddSlangPanel implements Serializable {
+  private static final long serialVersionUID = 1L;
+
   private static final String[] ADD_OPTIONS = {
     "Add if duplicate","Don't replace if duplicate","Replace if duplicate",
     "Edit if exist", "Delete if exist"

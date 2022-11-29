@@ -2,10 +2,12 @@ package MainGui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.Serializable;
 import java.util.Random;
 
-public class RandomSlangPanel {
+public class RandomSlangPanel implements Serializable {
   int maxKeyListLength = -1;
+  private static final long serialVersionUID = 1L;
 
   private JPanel randomPanel = new JPanel(new BorderLayout());
   private JButton randomBtn = new JButton("I'm felling lucky");

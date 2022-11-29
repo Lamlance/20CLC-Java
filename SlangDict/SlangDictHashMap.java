@@ -5,11 +5,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class SlangDictHashMap {
+public class SlangDictHashMap implements Serializable {
+  private static final long serialVersionUID = 1L;
+
   Map<String, String> slangDict = new HashMap<String, String>();
   Map<String, String> backupDict = new HashMap<String, String>();
 
